@@ -74,6 +74,8 @@ export const api = {
   updateStory: (id, body) => http.patch(`/stories/${id}`, body).then((r) => r.data),
   polishStory: (id) => http.post(`/stories/${id}/polish`).then((r) => r.data),
   matchStories: (question) => http.post("/stories/match", { question }).then((r) => r.data),
+  storyCoverage: () => http.get("/stories/coverage").then((r) => r.data),
+  markStoryUsed: (id, body) => http.post(`/stories/${id}/used`, body).then((r) => r.data),
   deleteStory: (id) => http.delete(`/stories/${id}`).then((r) => r.data),
 
   // Knowledge

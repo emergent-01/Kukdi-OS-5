@@ -315,20 +315,27 @@ class KukdiReasoning:
                     "feedback": "I couldn't refine this just now — try again in a moment."}
 
 
-    async def match_stories(self, query: str, stories: List[Dict]) -> List[Dict]:
-        """Rank the user's STAR stories by fit for a company or interview question."""
+    async def match_stories(self, query: str, stories: List[Dict], interviewing_at: str = None) -> List[Dict]:
+        """Rank the user's STAR stories by fit for a company or interview question.
+        Aware of where each story has already been used, so it can favour a fresh
+        story for the company in question when fits are comparable."""
         catalog = "\n".join(
             f'{i}. id={s["id"]} | {s.get("title","")} | themes: {", ".join(s.get("themes", []) or [])} '
+            f'| used at: {", ".join(s.get("companies_used", []) or []) or "none"} '
             f'| {s.get("snippet","")}'
             for i, s in enumerate(stories)
         )
+        target = f" She is currently interviewing at {interviewing_at}." if interviewing_at else ""
         system = (
             f"{_PERSONA}\n\n"
             "You are helping Little Miss pick which of her STAR interview stories best "
             "fits a company or an interview question. Consider the theme, the skill it "
-            "demonstrates, and the company's culture. Return ONLY JSON: "
+            "demonstrates, and the company's culture. Each story also lists the companies "
+            "it has already been used at." + target + " When two stories are a comparable "
+            "fit, PREFER the one that has NOT yet been used at the relevant company, and "
+            "briefly say so in the reason. Return ONLY JSON: "
             '{"results":[{"id":"<id>","fit":"strong|good|stretch",'
-            '"reason":"<=14 words on why it fits this ask"}]}, best first. '
+            '"reason":"<=16 words on why it fits this ask"}]}, best first. '
             "Include only genuinely relevant stories; omit weak fits."
         )
         chat = self._chat(system, f"kukdi-match-{new_id()}")

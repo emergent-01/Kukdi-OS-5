@@ -1,0 +1,36 @@
+{
+  "summary": "V6 additive Story Bank testing (coverage micro-line, mark-as-used, match enhancement) plus full regression of existing story flows. Backend: new pytest suite /app/backend/tests/test_v6_coverage_used.py (19 tests) all passed; prior V4/V5 suites re-run (10 tests) all passed. Frontend: full Playwright pass on /stories — coverage-line renders muted uppercase with exactly the expected missing (Ambiguity, Conflict, Execution, Analytical Thinking, Customer Focus) and thin (Leadership, Failure, Influence) sets; add-story -> coverage refresh -> open editor -> mark-as-used (with and without round, dedup, chips update, inputs clear, card shows 'Used at ...') -> Save -> Polish (Claude feedback returned) -> matcher (ISB Marketing Club returned as 'strong' influence fit, click opens editor) -> delete (coverage reverts). No regressions found. Test data created during the run was deleted; DB restored to the 2 seeded stories.",
+  "backend_issues": { "critical": [], "minor": [] },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Modal (shared)", "issue": "Pressing Escape does not close any modal (no keydown handler in Modal.jsx); only the X button / backdrop click work. Pre-existing, low priority a11y/UX gap.", "selector": "[data-testid='story-modal']", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Stories coverage line", "issues": ["Separator between the 'No story yet' and 'Only one' groups renders as a bare '/' at #C9C6BF on #F7F6F2 — nearly invisible (contrast ~1.3:1); consider a slightly darker divider or a line break for readability."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_v6_coverage_used.py",
+    "/app/test_reports/pytest/v6_results.xml"
+  ],
+  "action_items": [
+    "Optional: add Escape-to-close in components/Modal.jsx (affects all modals).",
+    "Optional: darken the coverage-line separator colour for legibility.",
+    "Optional: no UI surfaces the new match `interviewing_at` field — api.matchStories(question) never sends it, so the 'prefer an unused story at this company' rule is only reachable via API. Consider wiring it (e.g. company selector next to the matcher) if it was meant to be user-facing."
+  ],
+  "critical_code_review_comments": [
+    "routes/stories.py: GET /coverage is declared before GET '' and POST /match before POST /{story_id}/used, so path ordering is correct — verified no shadowing (a POST to /stories/match is not treated as a story id).",
+    "All story responses project out _id (verified: no '_id' key in list/create/patch/used/polish/match responses).",
+    "mark_used is idempotent by exact string ('Microsoft (Onsite)' vs 'Microsoft' are distinct entries by design — acceptable, but note the same company with different rounds accumulates separate chips).",
+    "Stories.jsx saveActive() PATCHes only the STAR fields, so a mark-used performed before Save is not clobbered — correct.",
+    "Coverage substring fallback is loose: theme 'lead' or 'custom' will match, and a two-char theme like 'am' would match 'Ambiguity'. Low risk for a single user but could mis-attribute odd themes."
+  ],
+  "updated_files": ["/app/backend/tests/test_v6_coverage_used.py", "/app/test_reports/iteration_6.json"],
+  "success_rate": { "backend": "100% (29/29 incl. V4/V5 regression)", "frontend": "100% of tested flows" },
+  "seed_data_creation": "Created and then deleted throwaway stories: TEST_coverage_probe, TEST_substring_probe, TEST_live_probe, TEST_mark_used_story, TEST_crud, TEST_polish (backend) and 'TEST_UI Ambiguity story' (UI, marked used at TestCorp (Round 1) + SecondCorp, then deleted). DB back to the 2 seeded stories.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Note: older suites test_v4_reminders_stories.py and test_v5_match_snooze.py read REACT_APP_BACKEND_URL from os.environ only, so they error at collection unless you export it (export REACT_APP_BACKEND_URL=$(grep REACT_APP_BACKEND_URL /app/frontend/.env | cut -d= -f2)). The new test_v6_coverage_used.py falls back to /app/frontend/.env. companies_used and mark-used persist across runs, so coverage/used assertions in V6 are written relative to a pre-read baseline rather than absolute values.",
+  "rca_of_the_issue": "No defects requiring RCA. The only Playwright failure in the first run was self-inflicted: Escape did not dismiss the story modal (Modal.jsx has no key handler), so the overlay intercepted the subsequent matcher click. Re-ran using [data-testid='story-modal-close'] and the matcher flow passed."
+}

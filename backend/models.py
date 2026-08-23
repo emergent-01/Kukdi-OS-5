@@ -45,6 +45,12 @@ COMPANY_TIERS = ["dream", "target", "safe"]
 PREP_CATEGORIES = ["framework", "story", "case", "resume", "networking", "roadmap", "daily"]
 EVENT_TYPES = ["class", "deadline", "exam", "event", "task", "placement"]
 
+# Fixed competency vocabulary Story Bank checks stories against. Extend freely.
+INTERVIEW_COMPETENCIES = [
+    "Leadership", "Ambiguity", "Failure", "Conflict", "Influence",
+    "Execution", "Analytical Thinking", "Customer Focus",
+]
+
 
 # ----- Request models --------------------------------------------------------
 
@@ -215,3 +221,13 @@ class StoryUpdate(BaseModel):
     tags: Optional[List[str]] = None
     companies_used: Optional[List[str]] = None
     status: Optional[str] = None
+
+
+class StoryMatchIn(BaseModel):
+    question: str
+    interviewing_at: Optional[str] = None
+
+
+class MarkUsedIn(BaseModel):
+    company: str
+    round: Optional[str] = None

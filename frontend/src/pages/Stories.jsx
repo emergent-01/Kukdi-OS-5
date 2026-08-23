@@ -22,9 +22,28 @@ export default function Stories() {
   const [matchQuery, setMatchQuery] = useState("");
   const [matchResults, setMatchResults] = useState(null);
   const [matching, setMatching] = useState(false);
+  const [coverage, setCoverage] = useState(null);
+  const [markCompany, setMarkCompany] = useState("");
+  const [markRound, setMarkRound] = useState("");
+  const [marking, setMarking] = useState(false);
 
   const load = () => api.stories().then((d) => setStories(d.stories || []));
-  useEffect(() => { load(); }, []);
+  const loadCoverage = () => api.storyCoverage().then(setCoverage).catch(() => {});
+  useEffect(() => { load(); loadCoverage(); }, []);
+
+  const markUsed = async () => {
+    if (!markCompany.trim()) return;
+    setMarking(true);
+    try {
+      const updated = await api.markStoryUsed(active.id, { company: markCompany.trim(), round: markRound.trim() || undefined });
+      setActive(updated);
+      setMarkCompany("");
+      setMarkRound("");
+      load();
+    } finally {
+      setMarking(false);
+    }
+  };
 
   const runMatch = async (e) => {
     e?.preventDefault();
@@ -48,6 +67,7 @@ export default function Stories() {
     setAddOpen(false);
     setForm(EMPTY);
     load();
+    loadCoverage();
   };
 
   const saveActive = async () => {
@@ -84,6 +104,21 @@ export default function Stories() {
       </div>
       <h1 className="font-editorial text-5xl md:text-6xl text-[#2C2D2B] mb-3">Your stories, ready</h1>
       <p className="text-[#8A8F8C] mb-8 max-w-xl">Shape a STAR story once and let Kukdi polish it — then reuse it across every company.</p>
+
+      {coverage && (coverage.missing.length > 0 || coverage.thin.length > 0) && (
+        <div className="mb-8 space-y-1.5" data-testid="coverage-line">
+          {coverage.missing.length > 0 && (
+            <p className="text-xs tracking-[0.15em] uppercase text-[#8A8F8C] leading-relaxed">
+              No story yet · {coverage.missing.join(" · ")}
+            </p>
+          )}
+          {coverage.thin.length > 0 && (
+            <p className="text-xs tracking-[0.15em] uppercase text-[#8A8F8C] leading-relaxed">
+              Only one · {coverage.thin.join(" · ")}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Story Matcher */}
       <form onSubmit={runMatch} className="mb-4" data-testid="matcher-form">
@@ -133,7 +168,7 @@ export default function Stories() {
               <button onClick={() => setActive(s)} data-testid={`story-open-${s.id}`} className="font-editorial text-3xl text-[#2C2D2B] text-left hover:text-[#5C605A] transition-colors">{s.title}</button>
               <div className="flex items-center gap-4">
                 <span className="text-[10px] tracking-[0.15em] uppercase text-[#9DB0A3]">{s.status}</span>
-                <button onClick={async () => { await api.deleteStory(s.id); load(); }} data-testid={`story-delete-${s.id}`} className="opacity-0 group-hover:opacity-100 transition-opacity text-[#8A8F8C] hover:text-[#a9564a]"><Trash2 size={15} /></button>
+                <button onClick={async () => { await api.deleteStory(s.id); load(); loadCoverage(); }} data-testid={`story-delete-${s.id}`} className="opacity-0 group-hover:opacity-100 transition-opacity text-[#8A8F8C] hover:text-[#a9564a]"><Trash2 size={15} /></button>
               </div>
             </div>
             <p className="text-[#5C605A] mt-2 max-w-2xl leading-relaxed line-clamp-2">{s.situation}</p>
@@ -166,6 +201,41 @@ export default function Stories() {
                 <p className="text-[#5C605A] mt-1 italic font-editorial text-lg leading-snug">{active.feedback}</p>
               </motion.div>
             )}
+
+            <div className="mb-6" data-testid="story-used-control">
+              <span className="block text-xs tracking-[0.15em] uppercase text-[#8A8F8C] mb-2">Told this story at</span>
+              {(active.companies_used || []).length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-3" data-testid="story-used-list">
+                  {active.companies_used.map((c) => (
+                    <span key={c} className="text-xs text-[#5C605A] bg-[#EFECE7] rounded-full px-3 py-1">{c}</span>
+                  ))}
+                </div>
+              )}
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  className={inputClass}
+                  value={markCompany}
+                  onChange={(e) => setMarkCompany(e.target.value)}
+                  placeholder="Company"
+                  data-testid="story-used-company"
+                />
+                <input
+                  className={inputClass}
+                  value={markRound}
+                  onChange={(e) => setMarkRound(e.target.value)}
+                  placeholder="Round (optional)"
+                  data-testid="story-used-round"
+                />
+                <button
+                  onClick={markUsed}
+                  data-testid="story-used-save"
+                  disabled={marking || !markCompany.trim()}
+                  className="shrink-0 bg-[#D4DDD7] text-[#2C2D2B] rounded-full px-6 py-3 text-sm hover:bg-[#9DB0A3] transition-colors disabled:opacity-40"
+                >
+                  {marking ? "Marking…" : "Mark as used"}
+                </button>
+              </div>
+            </div>
 
             <div className="flex items-center gap-3">
               <button

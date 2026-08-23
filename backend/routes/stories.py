@@ -6,20 +6,22 @@ from fastapi import APIRouter, HTTPException
 
 from ai_engine import reasoning
 from database import db
-from models import AskIn, StoryIn, StoryUpdate, new_id, now_iso
+from models import (INTERVIEW_COMPETENCIES, MarkUsedIn, StoryIn, StoryMatchIn,
+                    StoryUpdate, new_id, now_iso)
 
 router = APIRouter()
 
 
 @router.post("/match")
-async def match_stories(body: AskIn):
+async def match_stories(body: StoryMatchIn):
     stories = await db.stories.find({}, {"_id": 0}).to_list(500)
     catalog = [
         {"id": s["id"], "title": s.get("title", ""), "themes": s.get("themes", []),
+         "companies_used": s.get("companies_used", []),
          "snippet": (s.get("situation", "") + " " + s.get("result", ""))[:240]}
         for s in stories
     ]
-    ranked = await reasoning.match_stories(body.question, catalog)
+    ranked = await reasoning.match_stories(body.question, catalog, body.interviewing_at)
     by_id = {s["id"]: s for s in stories}
     results = []
     for r in ranked:
@@ -27,6 +29,32 @@ async def match_stories(body: AskIn):
         if s:
             results.append({**s, "fit": r.get("fit", "good"), "reason": r.get("reason", "")})
     return {"results": results, "query": body.question}
+
+
+@router.get("/coverage")
+async def coverage():
+    """Live competency coverage: which competencies have zero or only one story."""
+    stories = await db.stories.find({}, {"_id": 0}).to_list(500)
+    lower_map = {c.lower(): c for c in INTERVIEW_COMPETENCIES}
+    counts = {c: 0 for c in INTERVIEW_COMPETENCIES}
+    for s in stories:
+        seen = set()
+        for t in (s.get("themes") or []):
+            key = (t or "").strip().lower()
+            if not key:
+                continue
+            comp = lower_map.get(key)
+            if not comp:
+                for lc, orig in lower_map.items():
+                    if lc in key or key in lc:
+                        comp = orig
+                        break
+            if comp and comp not in seen:
+                counts[comp] += 1
+                seen.add(comp)
+    missing = [c for c in INTERVIEW_COMPETENCIES if counts[c] == 0]
+    thin = [c for c in INTERVIEW_COMPETENCIES if counts[c] == 1]
+    return {"competencies": INTERVIEW_COMPETENCIES, "counts": counts, "missing": missing, "thin": thin}
 
 
 @router.get("")
@@ -77,3 +105,22 @@ async def polish_story(story_id: str):
 async def delete_story(story_id: str):
     await db.stories.delete_one({"id": story_id})
     return {"ok": True}
+
+
+@router.post("/{story_id}/used")
+async def mark_used(story_id: str, body: MarkUsedIn):
+    story = await db.stories.find_one({"id": story_id}, {"_id": 0})
+    if not story:
+        raise HTTPException(404, "Story not found")
+    entry = (body.company or "").strip()
+    if not entry:
+        raise HTTPException(400, "Company is required")
+    if body.round and body.round.strip():
+        entry = f"{entry} ({body.round.strip()})"
+    used = list(story.get("companies_used") or [])
+    if entry not in used:
+        used.append(entry)
+        await db.stories.update_one(
+            {"id": story_id}, {"$set": {"companies_used": used, "updated": now_iso()}}
+        )
+    return await db.stories.find_one({"id": story_id}, {"_id": 0})
