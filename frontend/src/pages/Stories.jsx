@@ -103,7 +103,7 @@ export default function Stories() {
         </button>
       </div>
       <h1 className="font-editorial text-5xl md:text-6xl text-[#2C2D2B] mb-3">Your stories, ready</h1>
-      <p className="text-[#8A8F8C] mb-8 max-w-xl">Shape a STAR story once and let Kukdi polish it — then reuse it across every company.</p>
+      <p className="text-[#8A8F8C] mb-8 max-w-xl">Shape a STAR story once and let Kukdi polish it — then reuse it across any company.</p>
 
       {coverage && (coverage.missing.length > 0 || coverage.thin.length > 0) && (
         <div className="mb-8 space-y-1.5" data-testid="coverage-line">
