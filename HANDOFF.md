@@ -338,6 +338,9 @@ the ISB Marketing Club", "A decision I'd make differently").
   entries by design.
 - Shared `Modal` has no Escape-to-close handler (X button / backdrop only) — a known
   minor a11y gap affecting all modals.
+- **Seeded calendar dates are relative to seed time** (`seed.py` computes offsets from
+  "now"). In a long-lived preview DB they age past, so Home focus / reminders can
+  quietly go empty. `POST /api/seed` re-anchors all demo dates (wipes conversations).
 - LLM/SSE calls take a few seconds; UIs show calm "thinking/searching" states.
 
 ---
