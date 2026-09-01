@@ -34,6 +34,18 @@ memories, candidates, conversations, messages, companies, prep_items, people, ev
 knowledge, settings (singleton). Memory fields: type, title, description, confidence, status,
 source, relationships, tags, usable_for, created/updated/last_confirmed.
 
+## Code-quality hardening (2026-06 — V1.4.1)
+- Behavior-preserving fixes from a code review: defensive variable defaults
+  (`ai_engine.converse` `data = {}`; `reminders._days_until_birthday` `this_year = None`)
+  and stable React keys (Reflection/People/Home lists no longer use bare array index).
+- Deliberately NOT done (documented judgment): large component-extraction refactors,
+  `useEffect` dependency sweeps, and `useMemo` micro-opts — non-behavioral code-metric/
+  lint items on a working, fully-tested app; skipped to avoid regression risk for no
+  user-facing gain. The `is`→`==` route findings were false positives (no such code).
+- Verified: backend 76/76 (V7 + all prior suites), frontend 100%, no regressions.
+- Known demo gotcha: seeded event dates are relative to seed time, so nudges/focus go
+  stale as a long-lived preview DB ages — `POST /api/seed` re-anchors them.
+
 ## Implemented (2026-06 — V1.4)
 - **Story Matcher** — `POST /api/stories/match {question}`: Kukdi ranks the user's STAR stories
   by fit for a company or interview question (fit = strong/good/stretch + a short why). Surfaced

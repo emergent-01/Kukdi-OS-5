@@ -120,6 +120,7 @@ class KukdiReasoning:
         )
 
         raw = await chat.send_message(UserMessage(text=prompt))
+        data = {}
         try:
             data = _parse_json(raw)
         except Exception:

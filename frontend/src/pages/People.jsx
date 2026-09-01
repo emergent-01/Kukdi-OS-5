@@ -53,7 +53,7 @@ export default function People() {
               {p.important?.length > 0 && (
                 <ul className="mt-4 space-y-1.5">
                   {p.important.map((it, i) => (
-                    <li key={i} className="flex items-center gap-2.5 text-[#5C605A]">
+                    <li key={`${it}-${i}`} className="flex items-center gap-2.5 text-[#5C605A]">
                       <span className="h-1 w-1 rounded-full bg-[#9DB0A3]" />
                       {it}
                     </li>

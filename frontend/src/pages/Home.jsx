@@ -193,7 +193,7 @@ export default function Home() {
           <h2 className="text-xs tracking-[0.18em] uppercase text-[#8A8F8C] mb-5">What matters</h2>
           <div className="space-y-4">
             {data.focus.map((f, i) => (
-              <div key={i} className="flex items-baseline justify-between border-b border-[#E2DFD8] pb-4">
+              <div key={`${f.title}-${i}`} className="flex items-baseline justify-between border-b border-[#E2DFD8] pb-4">
                 <span className="text-xl text-[#2C2D2B]">{f.title}</span>
                 <span className="text-sm text-[#8A8F8C] whitespace-nowrap ml-6">{f.detail}</span>
               </div>

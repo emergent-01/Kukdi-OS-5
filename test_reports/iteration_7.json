@@ -1,0 +1,41 @@
+{
+  "summary": "V7 regression verification of the behavior-preserving hardening pass (ai_engine.converse `data = {}`, reminders._days_until_birthday `this_year = None`, React key changes in Reflection/People/Home). Backend: new suite /app/backend/tests/test_v7_hardening_regression.py (16 tests) all pass, plus full re-run of prior suites backend_test.py (31), v4/v5/v6 (29) — 76/76 green. Frontend Playwright: Home (greeting, home-brief, home-reminders with working snooze/dismiss, home-focus), Reflection (reflection-text + Behind you/Just ahead stats), People (all 4 seeded people with 'important' bullets, add + delete), Talk streaming reply, Dream Offer overview + countdown, Memory candidates, Knowledge list + semantic search, Stories list + coverage + matcher — all rendered correctly with ZERO console errors and no React duplicate-key warnings. No regression found in any touched area.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "GET /api/reminders (seed data)", "issue": "Seeded events are generated relative to the seed timestamp (seed.py _at()), so as the DB ages the deadline/placement nudges silently disappear from /api/reminders. On first run the seeded 'Marketing case submission' / 'Google APM case round' nudges were gone (only next-step nudges remained) until POST /api/seed was called. Not a code defect from this pass, but demo data goes stale — consider re-anchoring seeded dates on startup."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {"flow": "Knowledge 'BY MEANING' semantic search", "issue": "Typing a targeted query ('segmentation and positioning') returned the same 3 items in the same order as the unfiltered list, so there is no visible signal that semantic ranking ran (no loading/relevance indicator). Backend POST /api/knowledge/search returns 200; likely all 3 seeded items score as relevant. Cosmetic/observability only, not a failure.", "affected_selectors": ["[data-testid='knowledge-search']", "[data-testid='knowledge-mode-meaning']", "[data-testid='knowledge-list']"]}
+    ],
+    "design_issues": [
+      {"screen": "Reflection", "issues": ["The reflection paragraph fades in from near-transparent (framer-motion) and stays very light for ~1s; on a slow render the text is momentarily unreadable. Pre-existing, low priority."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_v7_hardening_regression.py",
+    "/app/test_reports/pytest/v7_results.xml",
+    "/app/test_reports/pytest/v7_prior_suites.xml"
+  ],
+  "action_items": [
+    "No functional fixes required for this hardening pass — no regressions detected.",
+    "Optional: re-anchor seeded event dates on startup (or a lightweight 'refresh demo dates' step) so seeded reminders/focus items don't go stale in long-lived preview DBs."
+  ],
+  "critical_code_review_comments": [
+    "ai_engine.converse: `data = {}` before the try is dead-but-harmless (the except path returns immediately), so behavior is unchanged — verified via /api/conversation/message (contract keys + candidates) and /api/conversation/stream (meta -> token(s) -> candidates -> done SSE order).",
+    "reminders._days_until_birthday: `this_year = None` default is also unreachable-before-assignment; parsing verified for 'Month Day', ISO 'YYYY-MM-DD', 'MM-DD' (all produced 'In 4 days'), and an invalid string ('not-a-date') produces no reminder and no 500.",
+    "React key changes (`${t}-${i}`, `${it}-${i}`, `${f.title}-${i}`) remain index-suffixed so they are still unique — no duplicate-key warnings observed in console on /reflection, /people, /.",
+    "POST /api/reminders/snooze and /dismiss return the recomputed list, and the UI re-renders from that response — verified the snoozed/dismissed id is absent from the immediate response and from the DOM."
+  ],
+  "updated_files": ["/app/backend/tests/test_v7_hardening_regression.py", "/app/test_reports/iteration_7.json"],
+  "success_rate": {"backend": "100% (76/76 across V7 + backend_test + V4/V5/V6)", "frontend": "100% of tested flows"},
+  "seed_data_creation": "Created and deleted throwaway people: TEST_MonthDay, TEST_ISO, TEST_MMDD, TEST_BadBday, TEST_Person (API) and 'TEST_UI Person' (UI). POST /api/seed was called twice (start + end of run) to restore date-relative seeded events and clear the snooze/dismiss state produced by testing; DB is back to the 4 seeded people, 2 seeded stories, 4 companies, 11 memories (conversations were wiped by reseed, as expected).",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "test_credentials": "N/A — no auth",
+  "context_for_next_testing_agent": "Run V7 with `cd /app/backend && python -m pytest tests/test_v7_hardening_regression.py` (it reads REACT_APP_BACKEND_URL from /app/frontend/.env; v4/v5 still need it exported). If reminder tests fail with a missing 'Marketing case submission', the DB simply aged — POST /api/seed to re-anchor event dates (wipes conversations). Ananya's March 14 birthday is >21 days out in September, so no birthday nudge appears; birthday parsing is instead validated with temporary TEST_ people 4 days out. Story matcher testids are matcher-input/matcher-submit (not story-match-input).",
+  "rca_of_the_issue": "The only initial red signals were self-inflicted/environmental: (1) my first-draft assertions assumed /api/conversation reply was a plain string (it is a message object with .text), the dream router prefix was /api/dream-offer (it is /api/dream), and knowledge search took `query` (it takes `question`); (2) the seeded deadline reminders were absent because seed.py generates event dates relative to seed time and the preview DB had aged past them — resolved by POST /api/seed. After correcting the tests, all 76 backend tests and every frontend flow passed."
+}

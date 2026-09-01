@@ -49,6 +49,7 @@ def _days_until_birthday(bstr: str):
 
     if not month or not day:
         return None
+    this_year = None
     try:
         this_year = today.replace(month=month, day=day)
     except ValueError:

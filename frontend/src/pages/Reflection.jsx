@@ -44,7 +44,7 @@ export default function Reflection() {
             <h2 className="text-xs tracking-[0.18em] uppercase text-[#8A8F8C] mb-4">Behind you</h2>
             <div className="space-y-2">
               {(stats.attended_this_week || []).map((t, i) => (
-                <p key={i} className="text-[#5C605A]">{t}</p>
+                <p key={`${t}-${i}`} className="text-[#5C605A]">{t}</p>
               ))}
               <p className="text-[#8A8F8C] text-sm mt-3">{stats.prep_done} prep milestones done</p>
             </div>
@@ -53,7 +53,7 @@ export default function Reflection() {
             <h2 className="text-xs tracking-[0.18em] uppercase text-[#8A8F8C] mb-4">Just ahead</h2>
             <div className="space-y-2">
               {(stats.coming_up || []).map((t, i) => (
-                <p key={i} className="text-[#5C605A]">{t}</p>
+                <p key={`${t}-${i}`} className="text-[#5C605A]">{t}</p>
               ))}
             </div>
           </div>
