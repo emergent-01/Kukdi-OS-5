@@ -34,6 +34,18 @@ memories, candidates, conversations, messages, companies, prep_items, people, ev
 knowledge, settings (singleton). Memory fields: type, title, description, confidence, status,
 source, relationships, tags, usable_for, created/updated/last_confirmed.
 
+## Real-user data provisioning (2026-09 — one-time)
+- Demo auto-seed permanently disabled: `seed()` is now a no-op and `POST /api/seed`
+  returns `{seeded:false,"reason":"demo seeding disabled"}`; startup no longer inserts demo.
+- Added `provision_real_data()` (idempotent via `settings.provisioned`): wipes all demo
+  collections and preloads 14 real companies (dream: Google, Microsoft, Amazon; target:
+  Flipkart, Myntra, Uber, Razorpay, Cisco, Qualcomm, Booking.com; safe: Jio, Ola, Deloitte
+  USI, Honeywell — blank role/location/notes/next_action, stage "researching") and 12
+  prep-circle candidate people (relation "Peer / prep group", `prep_group:false`,
+  `prep_candidate:true`, empty strengths). No route/model/design changes; ai_engine untouched.
+- Verified: DB clean of demo records; 14 companies + 12 candidates present; no `_id` leaks;
+  startup idempotent (provisions once, skips thereafter); frontend builds.
+
 ## Code-quality hardening (2026-06 — V1.4.1)
 - Behavior-preserving fixes from a code review: defensive variable defaults
   (`ai_engine.converse` `data = {}`; `reminders._days_until_birthday` `this_year = None`)

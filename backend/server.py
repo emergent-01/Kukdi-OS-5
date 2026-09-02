@@ -4,7 +4,7 @@ import os
 import logging
 
 from database import client, db
-from seed import seed
+from seed import seed, provision_real_data
 from storage import init_storage
 from routes import (calendar, conversation, dream, home, knowledge, memory,
                     people, reflection, reminders, stories)
@@ -50,8 +50,8 @@ logger = logging.getLogger("kukdi")
 
 @app.on_event("startup")
 async def on_startup():
-    result = await seed(force=False)
-    logger.info(f"Kukdi startup seed: {result}")
+    result = await provision_real_data(force=False)
+    logger.info(f"Kukdi real-data provisioning: {result}")
     try:
         init_storage()
         logger.info("Kukdi object storage initialized")

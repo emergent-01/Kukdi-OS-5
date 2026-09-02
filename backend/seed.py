@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 from database import db
-from models import new_id, now_iso
+from models import COMPANY_STAGES, new_id, now_iso
 
 COLLECTIONS = [
     "memories", "candidates", "conversations", "messages",
@@ -46,6 +46,13 @@ def _mem(type_, title, description, confidence=0.9, tags=None, usable_for=None):
 
 
 async def seed(force: bool = False) -> dict:
+    # Demo seeding is permanently disabled for the real-user deployment. This
+    # function is intentionally a no-op so neither startup nor POST /api/seed can
+    # reintroduce demo content. Kept for history / potential future dev use only.
+    return {"seeded": False, "reason": "demo seeding disabled"}
+
+
+async def _seed_demo_DISABLED(force: bool = False) -> dict:
     if not force:
         existing = await db.memories.count_documents({})
         if existing:
@@ -160,3 +167,71 @@ async def seed(force: bool = False) -> dict:
     await db.stories.insert_many(stories)
 
     return {"seeded": True, "memories": len(memories), "companies": len(companies), "people": len(people)}
+
+
+
+# ---------------------------------------------------------------------------
+# One-time real-user provisioning: wipe all demo content and preload the real
+# companies + prep-circle candidate people. Idempotent via a settings flag so a
+# restart never re-wipes real data the user has since added.
+# ---------------------------------------------------------------------------
+
+WIPE_COLLECTIONS = [
+    "memories", "candidates", "conversations", "messages",
+    "companies", "prep_items", "people", "events", "knowledge",
+    "stories", "countdowns",
+]
+
+REAL_COMPANIES = [
+    ("Google", "dream"), ("Microsoft", "dream"), ("Amazon", "dream"),
+    ("Flipkart", "target"), ("Myntra", "target"), ("Uber", "target"),
+    ("Razorpay", "target"), ("Cisco", "target"), ("Qualcomm", "target"),
+    ("Booking.com", "target"),
+    ("Jio", "safe"), ("Ola", "safe"), ("Deloitte USI", "safe"), ("Honeywell", "safe"),
+]
+
+REAL_PREP_CANDIDATES = [
+    "Shubhi", "Devina", "Sargam", "Payas", "Himagra", "Rohan",
+    "Rasukh", "Prem", "Samparan", "Shruthi", "Pratham", "Amol",
+]
+
+
+async def provision_real_data(force: bool = False) -> dict:
+    settings = await db.settings.find_one({"id": "singleton"}, {"_id": 0})
+    if settings and settings.get("provisioned") and not force:
+        return {"provisioned": False, "reason": "already provisioned"}
+
+    for c in WIPE_COLLECTIONS:
+        await db[c].delete_many({})
+
+    default_stage = COMPANY_STAGES[0]  # earliest stage
+    companies = [
+        {
+            "id": new_id(), "name": name, "tier": tier, "role": "",
+            "stage": default_stage, "location": "", "notes": "", "next_action": "",
+            "created": now_iso(), "updated": now_iso(),
+        }
+        for name, tier in REAL_COMPANIES
+    ]
+    await db.companies.insert_many(companies)
+
+    people = [
+        {
+            "id": new_id(), "name": name, "relation": "Peer / prep group",
+            "company": "", "birthday": "", "notes": "", "important": [], "tags": [],
+            "prep_group": False, "prep_candidate": True,
+            "strengths": [], "strength_note": "",
+            "created": now_iso(), "updated": now_iso(),
+        }
+        for name in REAL_PREP_CANDIDATES
+    ]
+    await db.people.insert_many(people)
+
+    # Clean settings singleton (drop any demo fields), mark provisioned.
+    await db.settings.delete_many({})
+    await db.settings.insert_one({
+        "id": "singleton", "home_state_override": None,
+        "provisioned": True, "updated": now_iso(),
+    })
+
+    return {"provisioned": True, "companies": len(companies), "people": len(people)}
