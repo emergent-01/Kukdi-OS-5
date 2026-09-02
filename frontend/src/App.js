@@ -10,6 +10,7 @@ import Calendar from "@/pages/Calendar";
 import Knowledge from "@/pages/Knowledge";
 import Reflection from "@/pages/Reflection";
 import Stories from "@/pages/Stories";
+import Intake from "@/pages/Intake";
 import More from "@/pages/More";
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
           <Route path="/knowledge" element={<Knowledge />} />
           <Route path="/reflection" element={<Reflection />} />
           <Route path="/stories" element={<Stories />} />
+          <Route path="/intake" element={<Intake />} />
           <Route path="/more" element={<More />} />
         </Routes>
       </Layout>

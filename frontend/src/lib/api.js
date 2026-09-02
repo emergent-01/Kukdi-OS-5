@@ -53,6 +53,7 @@ export const api = {
 
   // People
   people: () => http.get("/people").then((r) => r.data),
+  listPeople: () => http.get("/people").then((r) => r.data),
   createPerson: (body) => http.post("/people", body).then((r) => r.data),
   updatePerson: (id, body) => http.patch(`/people/${id}`, body).then((r) => r.data),
   deletePerson: (id) => http.delete(`/people/${id}`).then((r) => r.data),
@@ -67,6 +68,10 @@ export const api = {
   // Reflection
   weeklyReflection: (refresh = false) =>
     http.get("/reflection/weekly", { params: { refresh } }).then((r) => r.data),
+
+  // Day One Intake
+  intakeStatus: () => http.get("/intake/status").then((r) => r.data),
+  intakeCommit: (payload) => http.post("/intake/commit", payload).then((r) => r.data),
 
   // Story Bank
   stories: () => http.get("/stories").then((r) => r.data),

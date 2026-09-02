@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="6" failures="3" skipped="1" tests="41" time="33.787" timestamp="2026-09-02T08:50:41.839255+00:00" hostname="agent-env-b39aa8f7-3cd2-4133-9c7f-589246b8aa9e"><testcase classname="" name="tests.backend_test" time="0.000"><error message="collection failure">tests/backend_test.py:13: in &lt;module&gt;
+    BASE = os.environ["REACT_APP_BACKEND_URL"].rstrip("/") + "/api"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;frozen os&gt;:679: in __getitem__
+    ???
+E   KeyError: 'REACT_APP_BACKEND_URL'</error><error message="collection failure">tests/backend_test.py:13: in &lt;module&gt;
+    BASE = os.environ["REACT_APP_BACKEND_URL"].rstrip("/") + "/api"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;frozen os&gt;:679: in __getitem__
+    ???
+E   KeyError: 'REACT_APP_BACKEND_URL'</error></testcase><testcase classname="" name="tests.test_v4_reminders_stories" time="0.000"><error message="collection failure">tests/test_v4_reminders_stories.py:7: in &lt;module&gt;
+    BASE = os.environ["REACT_APP_BACKEND_URL"].rstrip("/") + "/api"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;frozen os&gt;:679: in __getitem__
+    ???
+E   KeyError: 'REACT_APP_BACKEND_URL'</error><error message="collection failure">tests/test_v4_reminders_stories.py:7: in &lt;module&gt;
+    BASE = os.environ["REACT_APP_BACKEND_URL"].rstrip("/") + "/api"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;frozen os&gt;:679: in __getitem__
+    ???
+E   KeyError: 'REACT_APP_BACKEND_URL'</error></testcase><testcase classname="" name="tests.test_v5_match_snooze" time="0.000"><error message="collection failure">tests/test_v5_match_snooze.py:8: in &lt;module&gt;
+    BASE = os.environ["REACT_APP_BACKEND_URL"].rstrip("/") + "/api"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;frozen os&gt;:679: in __getitem__
+    ???
+E   KeyError: 'REACT_APP_BACKEND_URL'</error><error message="collection failure">tests/test_v5_match_snooze.py:8: in &lt;module&gt;
+    BASE = os.environ["REACT_APP_BACKEND_URL"].rstrip("/") + "/api"
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+&lt;frozen os&gt;:679: in __getitem__
+    ???
+E   KeyError: 'REACT_APP_BACKEND_URL'</error></testcase><testcase classname="tests.test_v6_coverage_used.TestStoryCrudRegression" name="test_list_stories" time="0.173" /><testcase classname="tests.test_v6_coverage_used.TestStoryCrudRegression" name="test_create_patch_delete" time="0.424" /><testcase classname="tests.test_v6_coverage_used.TestMarkUsed" name="test_mark_with_round" time="0.338" /><testcase classname="tests.test_v6_coverage_used.TestMarkUsed" name="test_mark_dedup" time="0.059" /><testcase classname="tests.test_v6_coverage_used.TestMarkUsed" name="test_mark_without_round" time="0.073" /><testcase classname="tests.test_v6_coverage_used.TestMarkUsed" name="test_mark_bad_story_404" time="0.066" /><testcase classname="tests.test_v6_coverage_used.TestMarkUsed" name="test_mark_empty_company_400" time="0.109" /><testcase classname="tests.test_v6_coverage_used.TestStoryCrudRegression" name="test_patch_bad_id_404" time="0.108" /><testcase classname="tests.test_v6_coverage_used.TestMarkUsed" name="test_mark_missing_company_422" time="0.166" /><testcase classname="tests.test_v6_coverage_used.TestStoryCrudRegression" name="test_patch_no_changes_400" time="0.058" /><testcase classname="tests.test_v6_coverage_used.TestStoryCrudRegression" name="test_polish_story" time="7.877" /><testcase classname="tests.test_v7_hardening_regression.TestReminders" name="test_list_reminders_shape_and_seeded" time="0.619"><failure message="assert (True and 0 &gt; 0)&#10; +  where True = isinstance([], list)&#10; +  and   0 = len([])">self = &lt;test_v7_hardening_regression.TestReminders object at 0xf872abaad250&gt;
+client = &lt;requests.sessions.Session object at 0xf872aba2bd10&gt;
+
+    def test_list_reminders_shape_and_seeded(self, client):
+        r = client.get(f"{API}/reminders", timeout=60)
+        assert r.status_code == 200, r.text
+        rem = r.json()["reminders"]
+&gt;       assert isinstance(rem, list) and len(rem) &gt; 0
+E       assert (True and 0 &gt; 0)
+E        +  where True = isinstance([], list)
+E        +  and   0 = len([])
+
+tests/test_v7_hardening_regression.py:116: AssertionError</failure></testcase><testcase classname="tests.test_v7_hardening_regression.TestReminders" name="test_relative_detail_for_deadline" time="0.071"><failure message="IndexError: list index out of range">self = &lt;test_v7_hardening_regression.TestReminders object at 0xf872abaad910&gt;
+client = &lt;requests.sessions.Session object at 0xf872aba2bd10&gt;
+
+    def test_relative_detail_for_deadline(self, client):
+        rem = client.get(f"{API}/reminders", timeout=60).json()["reminders"]
+&gt;       dl = [x for x in rem if "Marketing case submission" in x["title"]][0]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       IndexError: list index out of range
+
+tests/test_v7_hardening_regression.py:131: IndexError</failure></testcase><testcase classname="tests.test_v7_hardening_regression.TestReminders" name="test_snooze_hides_then_dismiss" time="0.068"><skipped type="pytest.skip" message="no next-step reminder available">/app/backend/tests/test_v7_hardening_regression.py:138: no next-step reminder available</skipped></testcase><testcase classname="tests.test_v7_hardening_regression.TestReminders" name="test_birthday_parsing_month_day_and_iso" time="0.561" /><testcase classname="tests.test_v7_hardening_regression.TestReminders" name="test_birthday_invalid_string_no_crash" time="0.214" /><testcase classname="tests.test_v7_hardening_regression.TestSmoke" name="test_dream_offer_overview" time="0.184" /><testcase classname="tests.test_v7_hardening_regression.TestSmoke" name="test_memory_list" time="0.070" /><testcase classname="tests.test_v7_hardening_regression.TestSmoke" name="test_knowledge_list_and_search" time="1.341" /><testcase classname="tests.test_v7_hardening_regression.TestSmoke" name="test_stories_list_coverage_match" time="2.579" /><testcase classname="tests.test_v6_coverage_used.TestMatch" name="test_match_existing_body_shape" time="3.286" /><testcase classname="tests.test_v6_coverage_used.TestStoryCrudRegression" name="test_polish_bad_id_404" time="0.058" /><testcase classname="tests.test_v6_coverage_used.TestCoverage" name="test_coverage_shape" time="0.057" /><testcase classname="tests.test_v6_coverage_used.TestCoverage" name="test_coverage_reacts_to_new_story" time="0.170" /><testcase classname="tests.test_v6_coverage_used.TestCoverage" name="test_coverage_substring_theme_match" time="0.167" /><testcase classname="tests.test_v6_coverage_used.TestCoverage" name="test_coverage_not_stored" time="0.400" /><testcase classname="tests.test_v7_hardening_regression.TestConversation" name="test_message_returns_contract" time="5.535" /><testcase classname="tests.test_v6_coverage_used.TestMatch" name="test_match_with_interviewing_at" time="2.929" /><testcase classname="tests.test_v6_coverage_used.TestMatch" name="test_match_missing_question_422" time="0.055" /><testcase classname="tests.test_v7_hardening_regression.TestPeople" name="test_seeded_people_with_important" time="0.163"><failure message="AssertionError: ['Amol', 'Devina', 'Himagra', 'Payas', 'Pratham', 'Prem', ...]&#10;assert False&#10; +  where False = any(&lt;generator object TestPeople.test_seeded_people_with_important.&lt;locals&gt;.&lt;genexpr&gt; at 0xf872ab7842e0&gt;)">self = &lt;test_v7_hardening_regression.TestPeople object at 0xf872aba283d0&gt;
+client = &lt;requests.sessions.Session object at 0xf872ab673d90&gt;
+
+    def test_seeded_people_with_important(self, client):
+        r = client.get(f"{API}/people", timeout=60)
+        assert r.status_code == 200, r.text
+        body = r.json()
+        people = body["people"] if isinstance(body, dict) else body
+        names = [p["name"] for p in people]
+        for expected in ("Ananya", "Rohan Mehta", "Prof. Nair", "Mom"):
+&gt;           assert any(expected in n for n in names), names
+E           AssertionError: ['Amol', 'Devina', 'Himagra', 'Payas', 'Pratham', 'Prem', ...]
+E           assert False
+E            +  where False = any(&lt;generator object TestPeople.test_seeded_people_with_important.&lt;locals&gt;.&lt;genexpr&gt; at 0xf872ab7842e0&gt;)
+
+tests/test_v7_hardening_regression.py:215: AssertionError</failure></testcase><testcase classname="tests.test_v7_hardening_regression.TestPeople" name="test_create_and_delete" time="0.284" /><testcase classname="tests.test_v7_hardening_regression.TestHealth" name="test_root_api" time="0.068" /><testcase classname="tests.test_v7_hardening_regression.TestReflection" name="test_weekly" time="5.212" /><testcase classname="tests.test_v7_hardening_regression.TestConversation" name="test_message_follow_up_same_conversation" time="10.990" /><testcase classname="tests.test_v7_hardening_regression.TestConversation" name="test_stream_sse_events" time="6.827" /></testsuite></testsuites>

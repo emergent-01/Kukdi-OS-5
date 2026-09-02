@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
 
 const SECTIONS = [
+  { to: "/intake", title: "Day One Intake", desc: "Set up your world — confirm your prep circle and add your dates, mentors, stories and prep.", testId: "more-intake" },
   { to: "/memory", title: "Memory", desc: "Everything Kukdi remembers about you — fully editable.", testId: "more-memory" },
   { to: "/calendar", title: "Calendar", desc: "Timetable, deadlines, exams and placements. Ask it anything.", testId: "more-calendar" },
   { to: "/reflection", title: "Weekly Reflection", desc: "A gentle Sunday recap of your week, in Kukdi's voice.", testId: "more-reflection" },

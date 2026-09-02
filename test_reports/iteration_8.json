@@ -1,0 +1,50 @@
+{
+  "summary": "Tested the additive Day One Intake feature end-to-end. Backend: new pytest suite (5 tests, 100% pass) covering GET /api/intake/status, POST /api/intake/commit (empty commit, event/prep type-vocab fallback, empty-title skipping, invalid competency 'bogus' dropped while 'Leadership' kept, unknown people_updates id not counted, no _id leaks) and propagation into /api/calendar, /api/stories, /api/dream/overview, /api/people. Frontend: full Playwright pass of /intake — 12 preloaded candidates with working confirm toggles (sage #9DB0A3 on, muted #EFECE7 off), competency chips (muted #EFECE7 -> sage-tint #D4DDD7, not bright), strength note, add-new-person (13 toggles after add), alumni link target=_blank with correct ISB URL, mentor chip, event/story/prep drafts, single calm Save with prose confirmation (no emoji/exclamation), no progress bar / no step-N-of-M / no red validation, zero console errors. Verified all UI-saved data persisted in DB. Regression: More -> /intake link works, People page lists candidates + new mentor, Dream Offer shows all 14 companies. DB restored to baseline afterwards (12 unconfirmed candidates, 14 companies, 0 events/stories/prep/mentors, has_real_data=false) via /app/backend/tests/cleanup_intake_test_data.py.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "PATCH /api/people/{id}", "issue": "PersonUpdate model has no prep_group/strengths/strength_note fields, so prep-circle state can only be changed through /api/intake/commit (no way to un-confirm a person from the People page)."},
+      {"endpoint": "POST /api/people", "issue": "A person created from Intake's 'Add someone new' is stored without prep_candidate/prep_group/strengths/strength_note keys (returned as null/absent), unlike the 12 preloaded candidates. Intake tolerates it, but the shape is inconsistent; consider defaulting prep_candidate=true/prep_group=false/strengths=[]."}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "Intake prep circle", "issue": "data-testid for competency chips is not unique — intake-person-strength-chip-{Competency} repeats for all 12 people (12 matches per competency), causing Playwright strict-mode ambiguity. Suggest intake-person-strength-chip-{personId}-{Competency}.", "selector": "[data-testid='intake-person-strength-chip-Leadership']", "priority": "MEDIUM"},
+      {"component": "Router (App.js)", "issue": "Unknown routes render a completely blank page (observed at /dream) — no catch-all 404/redirect. Pre-existing, not introduced by intake.", "selector": "n/a", "priority": "LOW"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "/intake — What's ahead", "issues": ["Date field uses the raw browser-native datetime-local picker (mm/dd/yyyy, --:-- with the OS calendar icon), which breaks the calm editorial language used everywhere else; consider a styled/calendar primitive consistent with the Modal primitives."]},
+      {"screen": "/intake", "issues": ["api.intakeStatus exists in lib/api.js but is never used by Intake.jsx — the has_real_data signal is currently dead code on the frontend (no returning-user variant of the page)."]}
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_v8_intake.py",
+    "/app/backend/tests/cleanup_intake_test_data.py",
+    "/app/test_reports/pytest/v8_intake.xml",
+    "/app/test_reports/pytest/v8_prior.xml"
+  ],
+  "action_items": [
+    "Make competency chip data-testids unique per person (include person id).",
+    "Consider replacing the native datetime-local input on /intake with the app's calm date primitive.",
+    "Optionally use intakeStatus (or remove it) so it isn't dead code.",
+    "Optionally extend PersonUpdate with prep_group/strengths/strength_note so prep-circle state is editable outside intake.",
+    "Pre-existing stale test suites need attention (not intake-related): tests/backend_test.py, test_v4_reminders_stories.py, test_v5_match_snooze.py error with KeyError 'REACT_APP_BACKEND_URL' (they read only os.environ, not /app/frontend/.env), and 3 tests in test_v7_hardening_regression.py (seeded reminders / people with 'important') now fail because demo data was intentionally cleared."
+  ],
+  "critical_code_review_comments": [
+    "intake commit is a single sequential loop of insert_one calls — fine for single-user scale, but there is no partial-failure rollback; if one insert throws, earlier ones stay committed and the client gets a 500 with no counts.",
+    "Intake.jsx keeps `saved=true` and the local drafts after a successful save; clicking Save again would re-insert the same events/stories/prep as duplicates. Consider clearing local drafts on success.",
+    "_clean_competencies correctly de-dupes and case-normalises against INTERVIEW_COMPETENCIES — verified 'bogus' dropped, 'Leadership' kept."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_v8_intake.py",
+    "/app/backend/tests/cleanup_intake_test_data.py"
+  ],
+  "success_rate": {"backend": "100% (5/5 intake tests)", "frontend": "100% of intake flows exercised passed"},
+  "seed_data_creation": "Temporary ZZ_TEST_ prefixed events/stories/prep/mentor/person plus one confirmed candidate (Amol). All deleted and Amol reset to prep_group=false/strengths=[]/strength_note='' — DB verified back at 12 candidates, 14 companies, has_real_data=false.",
+  "should_call_test_agent_after_fix": false,
+  "should_main_agent_self_test": true,
+  "test_credentials": "None required (no auth)",
+  "context_for_next_testing_agent": "Intake feature verified green (backend + frontend). Reusable suite: /app/backend/tests/test_v8_intake.py; ALWAYS run /app/backend/tests/cleanup_intake_test_data.py afterwards — it deletes ZZ_TEST_* records and resets any prep_group=true person, restoring the real DB. Note dream page route is /dream-offer (not /dream). Older suites (backend_test.py, v4, v5, parts of v7) are stale after the demo-data wipe.",
+  "rca_of_the_issue": "No functional defects found. The only automation friction was the duplicated competency chip testid, worked around by scoping the locator to the first person card."
+}

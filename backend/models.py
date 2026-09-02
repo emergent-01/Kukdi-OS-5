@@ -231,3 +231,45 @@ class StoryMatchIn(BaseModel):
 class MarkUsedIn(BaseModel):
     company: str
     round: Optional[str] = None
+
+
+# ----- Day One Intake --------------------------------------------------------
+
+class IntakeEvent(BaseModel):
+    title: str
+    start: str
+    type: str = "event"
+    notes: str = ""
+
+
+class IntakeStory(BaseModel):
+    title: str
+    situation: str = ""
+    task: str = ""
+    action: str = ""
+    result: str = ""
+
+
+class IntakePrep(BaseModel):
+    title: str
+    category: str = "roadmap"
+    content: str = ""
+
+
+class IntakeMentor(BaseModel):
+    name: str
+
+
+class IntakePersonUpdate(BaseModel):
+    id: str
+    prep_group: Optional[bool] = None
+    strengths: Optional[List[str]] = None
+    strength_note: Optional[str] = None
+
+
+class IntakeCommitIn(BaseModel):
+    events: List[IntakeEvent] = Field(default_factory=list)
+    stories: List[IntakeStory] = Field(default_factory=list)
+    prep_items: List[IntakePrep] = Field(default_factory=list)
+    mentors: List[IntakeMentor] = Field(default_factory=list)
+    people_updates: List[IntakePersonUpdate] = Field(default_factory=list)
